@@ -1,0 +1,23 @@
+{
+  "name": "jsontothai",
+  "version": "0.0.1",
+  "description": "translate json to thai",
+  "main": "app.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "no"
+  },
+  "keywords": [
+    "jsontothai"
+  ],
+  "author": "singto",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.16.0",
+    "jsonfile": "^4.0.0",
+    "translate-google": "^1.0.2"
+  }
+}
