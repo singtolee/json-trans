@@ -18,6 +18,7 @@
   "dependencies": {
     "commander": "^2.16.0",
     "jsonfile": "^4.0.0",
+    "mstranslator": "^3.0.0",
     "translate-google": "^1.0.2"
   }
 }
