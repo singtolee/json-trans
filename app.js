@@ -18,14 +18,15 @@ const inFile = args.inputFilePath;
 const ofile = args.outputFilePath;
 const kw = args.keyword;
 console.log(kw);
-//console.log(MYKEY.key);
+console.log(MYKEY.key);
+
 jsonfile.readFile(inFile,function(err,obj){
 
     var i;
     for(i=0;i<obj.length;i++){
         obj[i].detail = strtoarray(obj[i].detail);
         obj[i].status = false;
-        obj[i].uw = 0.2;
+        obj[i].uw = 0.3;
         obj[i].keyword = kw;
     }
 
@@ -42,7 +43,12 @@ async function mymstran(arr){
             for(const sku of item.sku){
                 sku.thLabel = await callapi(sku.label)
                 for(const val of sku.values){
-                    val.thDesc = await callapi(val.desc)
+                    if(isEngSize(val.desc)){
+                        val.thDesc = val.desc;
+                        console.log("ENGLISH SIZE,skipe")
+                    }else {
+                        val.thDesc = await callapi(val.desc);
+                    }
                 }
             }
         }
@@ -159,4 +165,12 @@ function strtoarray(str){
 			return png;
 		}
 	}
+}
+
+function isEngSize(s){
+    if(s=="XXS" || s=="XS" || s=="S" || s=="M" || s=="L" || s=="XL" || s=="XXL" || s=="XXXL" || s=="XXXXL" || s=="2XL" || s=="3XL" || s=="4XL"){
+        return true
+    }else {
+        return false
+    }
 }
