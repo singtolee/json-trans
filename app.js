@@ -1,6 +1,5 @@
 var jsonfile = require('jsonfile');
 const MYKEY = require('./mykey');
-//var translate = require('translate-google');
 var args = require('commander');
 var MsTranslator = require('mstranslator');
 var client = new MsTranslator({
@@ -29,10 +28,6 @@ jsonfile.readFile(inFile,function(err,obj){
         obj[i].uw = 0.3;
         obj[i].keyword = kw;
     }
-
-    //mstrans(obj);
-
-    //singtoTransName(obj);
     mymstran(obj);
 })
 
@@ -47,83 +42,22 @@ async function mymstran(arr){
                         val.thDesc = val.desc;
                         console.log("ENGLISH SIZE,skipe")
                     }else {
-                        val.thDesc = await callapi(val.desc);
-                    }
-                }
-            }
-        }
-    }
-    write2file(arr);
-}
-
-async function mstrans(arr){
-    for (const item of arr) {
-        await client.translate({text:item.name,from:'zh-cn',to:'th'},function(err,data){
-            if(err){
-                console.error(err)
-            }else {
-                item.thName = data;
-                console.log(item.name);
-                console.log(item.thName);
-            }
-            
-        });
-        if(skutype(item.sku)){
-            for(const sku of item.sku){
-                await client.translate({text:sku.label,from:'zh-cn',to:'th'},function(err,data){
-                    if(err){
-                        console.error(err)
-                    }else{
-                        sku.thLabel = data;
-                        onsole.log(sku.label);
-                        onsole.log(sku.thLabel);
-                    }
-                    
-                })
-
-                for(const val of sku.values){
-                    await client.translate({text:val.desc,from:'zh-cn',to:'th'},function(err,data){
-                        if(err){
-                            console.error(err)
+                        if(val.desc.search('均码')!=-1){
+                            val.thDesc = 'หนึ่งขนาด';
+                            console.log("FIND 均码 " + val.thDesc)
                         }else {
-                            val.thDesc = data;
-                            onsole.log(val.desc);
-                            console.log(val.thDesc);
+                            if(val.thDesc=findSize(val.desc)){
+                                console.log("FIND SIZE: " + val.thDesc )
+                            }else{
+                                val.thDesc = await callapi(val.desc)
+                            }
                         }
-                        
-                    })
+                    }
                 }
             }
         }
     }
     write2file(arr);
-
-}
-
-async function singtoTransName(array){
-    for (const item of array) {
-        await translate(item.name,{to:'th'}).then(res=>{
-            item.thName = res;
-            console.log(item.thName);
-        })
-        if(skutype(item.sku)){
-            for(const sku of item.sku){
-                await translate(sku.label,{to:'th'}).then(res=>{
-                    sku.thLabel = res;
-                    console.log(sku.thLabel);
-                })
-
-                for(const val of sku.values){
-                    await translate(val.desc,{to:'th'}).then(res=>{
-                        val.thDesc = res;
-                        console.log(val.thDesc);
-                    })
-                }
-            }
-
-        }
-    }
-    write2file(array);
 }
 
 function skutype(sku){
@@ -143,7 +77,8 @@ function callapi(text) {
         client.translate({text:text,from:'zh-cn',to:'th'},function(err,data){
             if(err){
                 console.error(err)
-                reject(err)
+                callapi(text)
+                //reject(err)
             }else{
                 console.log(text)
                 console.log(data)
@@ -168,9 +103,33 @@ function strtoarray(str){
 }
 
 function isEngSize(s){
-    if(s=="XXS" || s=="XS" || s=="S" || s=="M" || s=="L" || s=="XL" || s=="XXL" || s=="XXXL" || s=="XXXXL" || s=="2XL" || s=="3XL" || s=="4XL"){
+    if(s=="XXS" || s=="XS" || s=="S" || s=="M" || s=="L" || s=="XL" || s=="XXL" || s=="XXXL" || s=="XXXXL" || s=="2XL" || s=="3XL" || s=="4XL" || s=="5XL"){
         return true
     }else {
         return false
     }
+}
+
+function findSize(str) {
+    const sizeS = "S";
+    const sizeXS = "XS";
+    const sizeM = "M";
+    const sizeL = "L";
+    const sizeXL = "XL";
+    const sizeXXL = "XXL";
+    const sizeXXXL = "XXXL";
+    const sizeXXXXL = "XXXXL";
+    const sizeXXXXXL = "XXXXXL";
+    const size2xl = "2XL";
+    const size3xl = "3XL";
+    const size4xl = "4XL";
+    const size5xl = "5XL";
+    const newSizeArr = [size5xl, size4xl, size3xl, size2xl, sizeXXXXXL, sizeXXXXL, sizeXXXL, sizeXXL, sizeXL, sizeL, sizeM, sizeXS, sizeS];
+    for (const size of newSizeArr) {
+        if (str.search(size) != -1) {
+            //console.log(size)
+            return size;
+        }
+    }
+    return false
 }
