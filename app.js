@@ -27,6 +27,7 @@ jsonfile.readFile(inFile,function(err,obj){
         obj[i].status = false;
         obj[i].uw = 0.3;
         obj[i].keyword = kw;
+        obj[i].time = new Date();
     }
     mymstran(obj);
 })
