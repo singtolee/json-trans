@@ -23,6 +23,7 @@ jsonfile.readFile(inFile,function(err,obj){
 
     var i;
     for(i=0;i<obj.length;i++){
+        obj[i].name = cleanName(obj[i].name);
         obj[i].detail = strtoarray(obj[i].detail);
         obj[i].status = false;
         obj[i].uw = 0.3;
@@ -101,6 +102,10 @@ function strtoarray(str){
 			return png;
 		}
 	}
+}
+
+function cleanName(str){
+    
 }
 
 function isEngSize(s){
