@@ -24,18 +24,20 @@ jsonfile.readFile(inFile,function(err,obj){
     var i;
     for(i=0;i<obj.length;i++){
         obj[i].name = cleanName(obj[i].name);
-        obj[i].detail = strtoarray(obj[i].detail);
-        obj[i].status = false;
-        obj[i].uw = 0.3;
-        obj[i].keyword = kw;
-        obj[i].time = new Date();
+        //obj[i].detail = strtoarray(obj[i].detail);
+        //obj[i].status = false;
+        //obj[i].uw = 0.3;
+        //obj[i].keyword = kw;
+        //obj[i].time = new Date();
     }
     mymstran(obj);
 })
 
 async function mymstran(arr){
     for(const item of arr){
+
         item.thName = await callapi(item.name);
+/*
         if(skutype(item.sku)){
             for(const sku of item.sku){
                 sku.thLabel = await callapi(sku.label)
@@ -58,6 +60,7 @@ async function mymstran(arr){
                 }
             }
         }
+        */
     }
     write2file(arr);
 }
@@ -104,10 +107,6 @@ function strtoarray(str){
 	}
 }
 
-function cleanName(str){
-    
-}
-
 function isEngSize(s){
     if(s=="XXS" || s=="XS" || s=="S" || s=="M" || s=="L" || s=="XL" || s=="XXL" || s=="XXXL" || s=="XXXXL" || s=="2XL" || s=="3XL" || s=="4XL" || s=="5XL"){
         return true
@@ -139,3 +138,10 @@ function findSize(str) {
     }
     return false
 }
+
+function cleanName(str){
+    var newStr = str.replace(/【|】|\d+|ins|INS|一件|代发|加肥|加大|大码|显瘦|实拍|专供|欧美|品牌|潮|潮流|logo|跨境|阿里巴巴|批发网|源头|产地|斤|胖|妹妹|mm|MM|东大门|淘货源|速卖通|wish|WISH|ebay|Ebay|批发|亚马逊|定制|厂家|直销|直供|速卖通|热卖|大码|清仓|自制|特价|爆款|现货|1688|欧洲站|外贸/gi,"")
+    console.log("OLD NAME: "+str);
+    console.log("NEW NAME: "+newStr)
+    return newStr;
+ }
