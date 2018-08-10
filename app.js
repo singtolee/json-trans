@@ -28,7 +28,7 @@ jsonfile.readFile(inFile,function(err,obj){
         if(obj[i].sku[0].label){
           obj[i].sku = handleSkus(obj[i].sku,obj[i].sku_detail,obj[i].trade_info)  
         }else {
-            obj[i].sku = ['empty'];
+            obj[i].sku = {label:'empty'};
         }
         obj[i].status = false;
         obj[i].uw = 0.3;
@@ -44,9 +44,9 @@ async function mymstran(arr){
     for(const item of arr){
         item.thName = await callapi(item.name);
         if(skutype(item.sku)){
-            //仅翻译sku[0]
-            item.sku[0].thLabel = await callapi(item.sku[0].label)
-            for(const val of item.sku[0].values){
+            //sku is object now
+            item.sku.thLabel = await callapi(item.sku.label)
+            for(const val of item.sku.values){
                 val.thDesc =await descTrans(val.desc)
                 for(const kk of val.skus){
                     kk.thSkuS =await descTrans(kk.skuS)
@@ -82,7 +82,7 @@ async function descTrans(str){
 }
 
 function skutype(sku){
-    if(sku[0].label){
+    if(sku.values){
         return true
     }else {return false}
 }
@@ -178,6 +178,6 @@ function cleanName(str){
         }
     }
 
-     return skuArr;
+     return skuArr[0];
 
  }
