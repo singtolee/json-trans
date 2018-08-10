@@ -24,45 +24,61 @@ jsonfile.readFile(inFile,function(err,obj){
     var i;
     for(i=0;i<obj.length;i++){
         obj[i].name = cleanName(obj[i].name);
-        //obj[i].detail = strtoarray(obj[i].detail);
-        //obj[i].status = false;
-        //obj[i].uw = 0.3;
-        //obj[i].keyword = kw;
-        //obj[i].time = new Date();
+        obj[i].detail = strtoarray(obj[i].detail);
+        if(obj[i].sku[0].label){
+          obj[i].sku = handleSkus(obj[i].sku,obj[i].sku_detail,obj[i].trade_info)  
+        }else {
+            obj[i].sku = ['empty'];
+        }
+        obj[i].status = false;
+        obj[i].uw = 0.3;
+        obj[i].keyword = kw;
+        obj[i].time = new Date();
+        delete obj[i].sku_detail;
     }
     mymstran(obj);
+    //write2file(obj);
 })
 
 async function mymstran(arr){
     for(const item of arr){
-
         item.thName = await callapi(item.name);
-/*
         if(skutype(item.sku)){
-            for(const sku of item.sku){
-                sku.thLabel = await callapi(sku.label)
-                for(const val of sku.values){
-                    if(isEngSize(val.desc)){
-                        val.thDesc = val.desc;
-                        console.log("ENGLISH SIZE,skipe")
-                    }else {
-                        if(val.desc.search('均码')!=-1){
-                            val.thDesc = 'หนึ่งขนาด';
-                            console.log("FIND 均码 " + val.thDesc)
-                        }else {
-                            if(val.thDesc=findSize(val.desc)){
-                                console.log("FIND SIZE: " + val.thDesc )
-                            }else{
-                                val.thDesc = await callapi(val.desc)
-                            }
-                        }
+            //仅翻译sku[0]
+            item.sku[0].thLabel = await callapi(item.sku[0].label)
+            for(const val of item.sku[0].values){
+                val.thDesc =await descTrans(val.desc)
+                for(const kk of val.skus){
+                    kk.thSkuS =await descTrans(kk.skuS)
                     }
-                }
             }
         }
-        */
     }
     write2file(arr);
+}
+
+async function descTrans(str){
+    if(isEngSize(str)){
+        console.log("ENGLISH SIZE,skipe")
+        return str
+    }else {
+        if(str.search('均码')!=-1){
+            console.log("FIND 均码 " + val.thDesc)
+            return 'หนึ่งขนาด'
+        }else {
+            
+            if(findSize(str)){
+                console.log("FIND SIZE: " + str )
+                return findSize(str)
+            }else{
+                var aa = await callapi(str)
+                return aa
+            }
+            
+        }
+    }
+
+
 }
 
 function skutype(sku){
@@ -140,8 +156,28 @@ function findSize(str) {
 }
 
 function cleanName(str){
-    var newStr = str.replace(/【|】|\d+|ins|INS|一件|代发|加肥|加大|大码|显瘦|实拍|专供|欧美|品牌|潮|潮流|logo|跨境|阿里巴巴|批发网|源头|产地|斤|胖|妹妹|mm|MM|东大门|淘货源|速卖通|wish|WISH|ebay|Ebay|批发|亚马逊|定制|厂家|直销|直供|速卖通|热卖|大码|清仓|自制|特价|爆款|现货|1688|欧洲站|外贸/gi,"")
+    var newStr = str.replace(/【|】|\d+|ins|INS|一件|代发|加肥|加大|大码|显瘦|实拍|专供|欧美|品牌|潮|潮流|logo|跨境|阿里巴巴|批发网|源头|产地|斤|胖|妹妹|mm|MM|东大门|淘货源|速卖通|wish|WISH|ebay|Ebay|批发|亚马逊|支持|定制|厂家|直销|直供|速卖通|热卖|大码|清仓|自制|特价|爆款|现货|1688|欧洲站|外贸/gi,"")
     console.log("OLD NAME: "+str);
     console.log("NEW NAME: "+newStr)
     return newStr;
+ }
+
+ function handleSkus(skuArr,skusArr,tradeInfo){
+    for(const val of skuArr[0].values){
+        val.skus = [];
+        for(const sdetail of skusArr){
+            if(!sdetail.price){
+                sdetail.price = tradeInfo[0].price
+            }
+            if(sdetail.sku.includes(val.desc)){
+                var bb = sdetail.sku.split(/\>/);
+                sdetail.skuC = bb[0];
+                sdetail.skuS = bb[1];
+                val.skus.push(sdetail)
+            }
+        }
+    }
+
+     return skuArr;
+
  }
