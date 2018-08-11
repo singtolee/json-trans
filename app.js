@@ -36,8 +36,8 @@ jsonfile.readFile(inFile,function(err,obj){
         obj[i].time = new Date();
         delete obj[i].sku_detail;
     }
-    mymstran(obj);
-    //write2file(obj);
+    //mymstran(obj);
+    write2file(obj);
 })
 
 async function mymstran(arr){
@@ -178,6 +178,20 @@ function cleanName(str){
         }
     }
 
-     return skuArr[0];
+    for(const va of skuArr[0].values){
+        //sort va.skus
+        va.skus.sort(compare)
+    } 
+    return skuArr[0];
 
+ }
+
+ function compare(a,b){
+     if(a.sku_id>b.sku_id){
+         return 1;
+     }
+     if(a.sku_id<b.sku_id){
+         return -1;
+     }
+     return 0;
  }
