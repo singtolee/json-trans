@@ -2,6 +2,7 @@ var jsonfile = require('jsonfile');
 const MYKEY = require('./mykey');
 var args = require('commander');
 var MsTranslator = require('mstranslator');
+var BAIDUTranslate = require('baidu-translate')(MYKEY.bid,MYKEY.bkey,'th','zh-CN');
 var client = new MsTranslator({
     api_key: MYKEY.key
   }, true);
@@ -28,6 +29,7 @@ jsonfile.readFile(inFile,function(err,obj){
         if(obj[i].sku[0].label){
           obj[i].sku = handleSkus(obj[i].sku,obj[i].sku_detail,obj[i].trade_info)  
         }else {
+            //TODO make a sku
             obj[i].sku = {label:'empty'};
         }
         obj[i].status = false;
@@ -36,9 +38,28 @@ jsonfile.readFile(inFile,function(err,obj){
         obj[i].time = new Date();
         delete obj[i].sku_detail;
     }
+    myBaiduTrans(obj)
     //mymstran(obj);
-    write2file(obj);
+    //write2file(obj);
 })
+
+async function myBaiduTrans(arr){
+    for(const item of arr){
+        item.thName = await baiduApi(item.name);
+        if(skutype(item.sku)){
+            //sku is object now
+            item.sku.thLabel = await baiduApi(item.sku.label)
+            for(const val of item.sku.values){
+                val.thDesc =await descTrans(val.desc)
+                for(const kk of val.skus){
+                    kk.thSkuS =await descTrans(kk.skuS)
+                    }
+            }
+        }
+    }
+    write2file(arr);
+
+}
 
 async function mymstran(arr){
     for(const item of arr){
@@ -71,14 +92,12 @@ async function descTrans(str){
                 console.log("FIND SIZE: " + str )
                 return findSize(str)
             }else{
-                var aa = await callapi(str)
+                var aa = await baiduApi(str)
                 return aa
             }
             
         }
     }
-
-
 }
 
 function skutype(sku){
@@ -105,6 +124,16 @@ function callapi(text) {
                 console.log(data)
                 resolve(data)
             }
+        })
+    })
+}
+
+function baiduApi(text){
+    return new Promise(resolve=>{
+        BAIDUTranslate(text).then(res=>{
+            console.log(res.trans_result[0].src)
+            console.log(res.trans_result[0].dst)
+            resolve(res.trans_result[0].dst)
         })
     })
 }
@@ -173,6 +202,9 @@ function cleanName(str){
                 var bb = sdetail.sku.split(/\>/);
                 sdetail.skuC = bb[0];
                 sdetail.skuS = bb[1];
+                sdetail.price = Number(sdetail.price);
+                sdetail.sugPrice = Math.ceil(sdetail.price*1.7);
+                sdetail.stock = Number(sdetail.stock);
                 val.skus.push(sdetail)
             }
         }
