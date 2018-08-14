@@ -30,7 +30,7 @@ jsonfile.readFile(inFile,function(err,obj){
           obj[i].sku = handleSkus(obj[i].sku,obj[i].sku_detail,obj[i].trade_info)  
         }else {
             //TODO make a sku
-            obj[i].sku = {label:'empty'};
+            obj[i].sku = fakeSku(obj[i])
         }
         obj[i].status = false;
         obj[i].uw = 0.3;
@@ -38,10 +38,30 @@ jsonfile.readFile(inFile,function(err,obj){
         obj[i].time = new Date();
         delete obj[i].sku_detail;
     }
-    myBaiduTrans(obj)
-    //mymstran(obj);
+    //myBaiduTrans(obj)
+    mymstran(obj);
     //write2file(obj);
 })
+
+function fakeSku(obj){
+    return {
+        label:"颜色",
+        values:[{
+            desc:"均码",
+            image:obj.images[0],
+            skus:[{
+                sku:"均码",
+                stock:999,
+                sku_id:'1234567890',
+                price:Number(obj.trade_info[0].price),
+                skuC:"均码",
+                skuS:"均码",
+                sugPrice:Math.ceil(Number(obj.trade_info[0].price*1.7))
+            }]
+        }],
+
+    }
+}
 
 async function myBaiduTrans(arr){
     for(const item of arr){
@@ -50,9 +70,9 @@ async function myBaiduTrans(arr){
             //sku is object now
             item.sku.thLabel = await baiduApi(item.sku.label)
             for(const val of item.sku.values){
-                val.thDesc =await descTrans(val.desc)
+                val.thDesc =await bddescTrans(val.desc)
                 for(const kk of val.skus){
-                    kk.thSkuS =await descTrans(kk.skuS)
+                    kk.thSkuS =await bddescTrans(kk.skuS)
                     }
             }
         }
@@ -79,6 +99,28 @@ async function mymstran(arr){
 }
 
 async function descTrans(str){
+    if(isEngSize(str)){
+        console.log("ENGLISH SIZE,skipe")
+        return str
+    }else {
+        if(str.search('均码')!=-1){
+            console.log("FIND 均码 ")
+            return 'หนึ่งขนาด'
+        }else {
+            
+            if(findSize(str)){
+                console.log("FIND SIZE: " + str )
+                return findSize(str)
+            }else{
+                var aa = await callapi(str)
+                return aa
+            }
+            
+        }
+    }
+}
+
+async function bddescTrans(str){
     if(isEngSize(str)){
         console.log("ENGLISH SIZE,skipe")
         return str
@@ -200,8 +242,14 @@ function cleanName(str){
             }
             if(sdetail.sku.includes(val.desc)){
                 var bb = sdetail.sku.split(/\>/);
-                sdetail.skuC = bb[0];
-                sdetail.skuS = bb[1];
+                if(bb.length>1){
+                    sdetail.skuC = bb[0];
+                    sdetail.skuS = bb[1];
+                }else{
+                    sdetail.skuC = bb[0];
+                    sdetail.skuS = bb[0];
+                }
+                
                 sdetail.price = Number(sdetail.price);
                 sdetail.sugPrice = Math.ceil(sdetail.price*1.7);
                 sdetail.stock = Number(sdetail.stock);
